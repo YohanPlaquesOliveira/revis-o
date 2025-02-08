@@ -1,71 +1,71 @@
-const axios = require('axios');
-const config = require('../config/config');
-const logger = require('../middlewares/logger');
-
 class MercadoPagoService {
-  constructor() {
-    this.baseUrl = 'https://api.mercadopago.com/v1';
-    this.timeout = config.api.timeout;
-  }
+    constructor() {
+        this.baseUrl = config[process.env.NODE_ENV || 'development'].api.mercadopago.baseUrl;
+        this.timeout = config[process.env.NODE_ENV || 'development'].api.mercadopago.timeout;
+        
+        this.breaker = new CircuitBreaker(this.makeRequest.bind(this), {
+            timeout: this.timeout,
+            errorThresholdPercentage: 50,
+            resetTimeout: 30000,
+            name: 'mercadopago-api'
+        });
 
-  async createPayment(paymentData, accessToken) {
-    try {
-      const response = await axios({
-        method: 'POST',
-        url: `${this.baseUrl}/payments`,
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        data: paymentData,
-        timeout: this.timeout
-      });
-
-      return response.data;
-    } catch (error) {
-      logger.error('Error creating MP payment:', error);
-      throw error;
+        this.setupBreakerEvents();
     }
-  }
 
-  async getPayment(paymentId, accessToken) {
-    try {
-      const response = await axios({
-        method: 'GET',
-        url: `${this.baseUrl}/payments/${paymentId}`,
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        },
-        timeout: this.timeout
-      });
+    // ... outros métodos existentes ...
 
-      return response.data;
-    } catch (error) {
-      logger.error('Error getting MP payment:', error);
-      throw error;
+    async configureIPN(accessToken, uniqueId) {
+        try {
+            const response = await this.retryRequest(() => 
+                this.breaker.fire({
+                    method: 'POST',
+                    url: `${this.baseUrl}/pos`,
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    data: {
+                        notification_url: `https://api.seudominio.com/ipn/${uniqueId}/notification`,
+                        fixed_amount: true,
+                        category: "621102",
+                        external_id: uniqueId,
+                        notification_type: "ipn"
+                    }
+                })
+            );
+
+            return response.data;
+        } catch (error) {
+            logger.error('Error configuring IPN:', {
+                error: error.message,
+                timestamp: '2025-02-08 18:46:08',
+                user: 'YohanPlaquesOliveira'
+            });
+            throw error;
+        }
     }
-  }
 
-  async createRefund(paymentId, accessToken, amount = null) {
-    try {
-      const data = amount ? { amount } : {};
-      const response = await axios({
-        method: 'POST',
-        url: `${this.baseUrl}/payments/${paymentId}/refunds`,
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        data,
-        timeout: this.timeout
-      });
+    async getPixQRCode(paymentId, accessToken) {
+        try {
+            const response = await this.retryRequest(() => 
+                this.breaker.fire({
+                    method: 'GET',
+                    url: `${this.baseUrl}/payments/${paymentId}/qr_code`,
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                })
+            );
 
-      return response.data;
-    } catch (error) {
-      logger.error('Error creating MP refund:', error);
-      throw error;
+            return response.data;
+        } catch (error) {
+            logger.error('Error getting PIX QR Code:', {
+                error: error.message,
+                payment_id: paymentId,
+                timestamp: '2025-02-08 18:46:08'
+            });
+            throw error;
+        }
     }
-  }
 }
-
-module.exports = new MercadoPagoService();

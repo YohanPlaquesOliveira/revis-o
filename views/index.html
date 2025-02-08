@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Revisão</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script defer src="/js/main.js"></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="user-info">
+                <span id="currentUser">YohanPlaquesOliveira</span>
+                <span id="currentTime">2025-02-08 17:03:27</span>
+            </div>
+            <div class="nav-links">
+                <a href="/dashboard">Dashboard</a>
+                <a href="/devices">Dispositivos</a>
+                <a href="/reports">Relatórios</a>
+                <a href="/settings">Configurações</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div id="alerts"></div>
+        <div id="content"></div>
+    </main>
+
+    <footer>
+        <p>© 2025 Sistema de Revisão. Todos os direitos reservados.</p>
+    </footer>
+
+    <template id="error-template">
+        <div class="alert alert-error">
+            <span class="message"></span>
+            <button class="close">&times;</button>
+        </div>
+    </template>
+</body>
+</html>

@@ -1,44 +1,62 @@
 const logger = require('./logger');
+const { ValidationError, DatabaseError } = require('sequelize');
+const mercadoPagoErrors = require('../utils/mercadoPagoErrors');
 
 class ErrorHandler {
-  static handle(err, req, res, next) {
-    logger.error('Error occurred:', {
+  static async handle(err, req, res, next) {
+    const errorInfo = {
       error: err.message,
-      stack: err.stack,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
       path: req.path,
       method: req.method,
-      timestamp: '2025-02-08 03:52:41',
-      user: 'YohanPlaques'
-    });
+      timestamp: new Date().toISOString(),
+      requestId: req.id
+    };
 
-    if (err.name === 'ValidationError') {
+    // Log do erro
+    logger.error('Error occurred:', errorInfo);
+
+    // Monitorar erro (exemplo com uma função hipotética)
+    await this.monitorError(err, errorInfo);
+
+    // Tratar erros específicos
+    if (err instanceof ValidationError) {
       return res.status(400).json({
         error: 'Validation Error',
-        details: err.message
+        details: err.errors.map(e => ({
+          field: e.path,
+          message: e.message
+        }))
       });
     }
 
-    if (err.name === 'AuthenticationError') {
-      return res.status(401).json({
-        error: 'Authentication Error',
-        details: err.message
+    if (err instanceof DatabaseError) {
+      return res.status(503).json({
+        error: 'Database Error',
+        message: 'A database error occurred'
       });
     }
 
-    if (err.name === 'NotFoundError') {
-      return res.status(404).json({
-        error: 'Not Found',
-        details: err.message
+    if (err.name === 'MercadoPagoError') {
+      const mpError = mercadoPagoErrors.getErrorInfo(err.code);
+      return res.status(mpError.status).json({
+        error: mpError.title,
+        details: mpError.message
       });
     }
 
+    // Erro genérico
     res.status(500).json({
       error: 'Internal Server Error',
       message: process.env.NODE_ENV === 'production' 
         ? 'An unexpected error occurred' 
-        : err.message
+        : err.message,
+      requestId: req.id
     });
   }
-}
 
-module.exports = ErrorHandler;
+  static async monitorError(err, info) {
+    // Implementar monitoramento de erros
+    // Exemplo: enviar para um serviço de monitoramento
+  }
+}

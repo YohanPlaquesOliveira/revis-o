@@ -1,5 +1,20 @@
 const winston = require('winston');
+require('winston-daily-rotate-file');
 const { createLogger, format, transports } = winston;
+
+// Sanitizar dados sensíveis
+const sanitizeData = (info) => {
+  const sensitiveFields = ['password', 'token', 'api_key', 'access_token'];
+  const sanitized = { ...info };
+
+  sensitiveFields.forEach(field => {
+    if (sanitized[field]) {
+      sanitized[field] = '***REDACTED***';
+    }
+  });
+
+  return sanitized;
+};
 
 const logger = createLogger({
   format: format.combine(
@@ -8,52 +23,28 @@ const logger = createLogger({
     }),
     format.errors({ stack: true }),
     format.splat(),
+    format(sanitizeData)(),
     format.json()
   ),
   defaultMeta: {
     service: 'mp-pos',
-    environment: process.env.NODE_ENV || 'development',
-    user: 'YohanPlaques'
+    environment: process.env.NODE_ENV || 'development'
   },
   transports: [
-    new transports.File({ 
-      filename: 'logs/error.log', 
-      level: 'error' 
+    new transports.DailyRotateFile({
+      filename: 'logs/error-%DATE%.log',
+      datePattern: 'YYYY-MM-DD',
+      zippedArchive: true,
+      maxSize: '20m',
+      maxFiles: '14d',
+      level: 'error'
     }),
-    new transports.File({ 
-      filename: 'logs/combined.log' 
+    new transports.DailyRotateFile({
+      filename: 'logs/combined-%DATE%.log',
+      datePattern: 'YYYY-MM-DD',
+      zippedArchive: true,
+      maxSize: '20m',
+      maxFiles: '14d'
     })
   ]
 });
-
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(new transports.Console({
-    format: format.combine(
-      format.colorize(),
-      format.simple()
-    )
-  }));
-}
-
-// Middleware para logging de requisições
-const requestLogger = (req, res, next) => {
-  const start = Date.now();
-
-  res.on('finish', () => {
-    logger.info('HTTP Request', {
-      method: req.method,
-      url: req.url,
-      status: res.statusCode,
-      duration: Date.now() - start,
-      timestamp: '2025-02-08 03:52:41',
-      user: 'YohanPlaques'
-    });
-  });
-
-  next();
-};
-
-module.exports = {
-  logger,
-  requestLogger
-};

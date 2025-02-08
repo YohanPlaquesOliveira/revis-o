@@ -1,51 +1,53 @@
-const express = require('express');
-const router = express.Router();
-const { validateToken } = require('../middlewares/auth');
-const { logger } = require('../middlewares/logger');
-const Account = require('../models/account');
-const mqtt = require('../services/mqtt');
-
-// Rota para configuração do token
 router.post('/config/token', async (req, res) => {
     try {
         const { accessToken } = req.body;
         
-        if (!accessToken) {
-            return res.status(400).json({ message: 'Access Token é obrigatório' });
-        }
-
-        // Valida o token com o Mercado Pago
-        const mpResponse = await validateToken(accessToken);
+        // 1. Valida token no Mercado Pago
+        const mpValidation = await validateToken(accessToken);
         
-        if (!mpResponse.valid) {
-            return res.status(401).json({ message: 'Token inválido' });
-        }
+        // 2. Gera uniqueId
+        const uniqueId = uuidv4();
 
-        // Cria ou atualiza a conta
-        const account = await Account.createOrUpdate({
+        // 3. Configura IPN no Mercado Pago primeiro
+        const posConfig = await mercadoPagoService.configureIPN(
+            accessToken,
+            uniqueId
+        );
+
+        // 4. Cria ou atualiza conta com os dados do POS
+        const account = await Account.create({
             mp_access_token: accessToken,
-            mp_user_id: mpResponse.userId,
-            mp_store_id: mpResponse.storeId,
-            mp_pos_id: mpResponse.posId,
-            status: 'active'
+            mp_user_id: mpValidation.userId,
+            mp_store_id: posConfig.store_id,
+            mp_pos_id: posConfig.id,
+            unique_id: uniqueId,
+            external_pos_id: posConfig.external_id,
+            status: 'active',
+            created_at: '2025-02-08 18:43:33',
+            created_by: 'YohanPlaquesOliveira'
         });
 
-        // Notifica o ESP32 via MQTT
-        await mqtt.publishToDevice(account.uniqueId, {
-            command: 'config_update',
-            storeId: account.mp_store_id,
-            posId: account.mp_pos_id
+        // 5. Registra dispositivo ESP
+        const device = await Device.create({
+            account_id: account.id,
+            store_id: posConfig.store_id,
+            pos_id: posConfig.id,
+            status: 'active',
+            created_at: '2025-02-08 18:43:33',
+            created_by: 'YohanPlaquesOliveira'
         });
 
-        res.json({
-            uniqueId: account.uniqueId,
-            message: 'Configuração realizada com sucesso'
+        res.json({ 
+            uniqueId: account.unique_id,
+            pos_id: posConfig.id,
+            store_id: posConfig.store_id
         });
-
     } catch (error) {
-        logger.error('Erro na configuração do token:', error);
-        res.status(500).json({ message: 'Erro interno no servidor' });
+        logger.error('Error in token configuration:', {
+            error: error.message,
+            timestamp: '2025-02-08 18:43:33',
+            user: 'YohanPlaquesOliveira'
+        });
+        res.status(500).json({ error: error.message });
     }
 });
-
-module.exports = router;

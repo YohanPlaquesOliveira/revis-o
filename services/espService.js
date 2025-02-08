@@ -1,40 +1,25 @@
-const mqtt = require('./mqtt');
-const logger = require('../middlewares/logger');
-
 class ESPService {
-  constructor() {
-    this.baseTopic = 'pos/device';
-  }
-
-  async sendCommand(deviceId, command, payload) {
-    try {
-      const topic = `${this.baseTopic}/${deviceId}/command`;
-      await mqtt.publish(topic, {
-        command,
-        payload,
-        timestamp: '2025-02-08 03:48:50'
-      });
-      
-      logger.info(`Command sent to device ${deviceId}:`, { command, payload });
-      return true;
-    } catch (error) {
-      logger.error(`Error sending command to device ${deviceId}:`, error);
-      throw error;
-    }
-  }
-
-  async getDeviceStatus(deviceId) {
+  async getDeviceStatus(deviceId, timeout = 5000) {
     try {
       const topic = `${this.baseTopic}/${deviceId}/status`;
-      await mqtt.publish(topic, { 
-        type: 'STATUS_REQUEST',
-        timestamp: '2025-02-08 03:48:50'
-      });
+      const responseTopic = `${this.baseTopic}/${deviceId}/status/response`;
       
-      // Implementar lógica de espera da resposta
-      return new Promise((resolve) => {
-        mqtt.subscribe(`${this.baseTopic}/${deviceId}/status/response`, (message) => {
+      return new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+          this.cleanupSubscription(responseTopic);
+          reject(new Error('Device status request timeout'));
+        }, timeout);
+
+        const subscription = mqtt.subscribe(responseTopic, (message) => {
+          clearTimeout(timeoutId);
+          this.cleanupSubscription(responseTopic);
           resolve(message);
+        });
+
+        mqtt.publish(topic, { 
+          type: 'STATUS_REQUEST',
+          timestamp: new Date().toISOString(),
+          request_id: this.generateRequestId()
         });
       });
     } catch (error) {
@@ -42,6 +27,16 @@ class ESPService {
       throw error;
     }
   }
-}
 
-module.exports = new ESPService();
+  cleanupSubscription(topic) {
+    try {
+      mqtt.unsubscribe(topic);
+    } catch (error) {
+      logger.error(`Error cleaning up subscription for topic ${topic}:`, error);
+    }
+  }
+
+  generateRequestId() {
+    return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+}

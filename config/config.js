@@ -1,35 +1,16 @@
-module.exports = {
+const { validateConfig } = require('./configValidator');
+
+const config = {
   development: {
     database: {
-      username: 'postgres',
-      password: 'postgres',
-      database: 'mp_pos_dev',
-      host: 'localhost',
+      username: process.env.DEV_DB_USER || 'postgres',
+      password: process.env.DEV_DB_PASS || 'postgres',
+      database: process.env.DEV_DB_NAME || 'mp_pos_dev',
+      host: process.env.DEV_DB_HOST || 'localhost',
       dialect: 'postgres',
       logging: true
     },
-    api: {
-      timeout: 30000,
-      key: 'dev_api_key_1234',
-      mercadopago: {
-        baseUrl: 'https://api.mercadopago.com/v1',
-        timeout: 30000
-      }
-    },
-    redis: {
-      url: 'redis://localhost:6379',
-      prefix: 'mp_pos_dev:'
-    },
-    mqtt: {
-      broker: 'mqtt://localhost:1883',
-      username: 'mp_pos',
-      password: 'dev_mqtt_pass'
-    },
-    security: {
-      jwtSecret: 'dev_jwt_secret_key',
-      tokenExpiration: '24h',
-      saltRounds: 10
-    }
+    // ... outras configs ...
   },
   production: {
     database: {
@@ -40,33 +21,33 @@ module.exports = {
       dialect: 'postgres',
       logging: false,
       pool: {
-        max: 10,
-        min: 0,
+        max: parseInt(process.env.DB_POOL_MAX || '10'),
+        min: parseInt(process.env.DB_POOL_MIN || '0'),
         acquire: 30000,
         idle: 10000
-      }
+      },
+      ssl: process.env.DB_SSL === 'true' ? {
+        require: true,
+        rejectUnauthorized: false
+      } : false
     },
-    api: {
-      timeout: 30000,
-      key: process.env.API_KEY,
-      mercadopago: {
-        baseUrl: 'https://api.mercadopago.com/v1',
-        timeout: 30000
-      }
-    },
-    redis: {
-      url: process.env.REDIS_URL,
-      prefix: 'mp_pos:'
-    },
-    mqtt: {
-      broker: process.env.MQTT_BROKER,
-      username: process.env.MQTT_USER,
-      password: process.env.MQTT_PASS
-    },
-    security: {
-      jwtSecret: process.env.JWT_SECRET,
-      tokenExpiration: '24h',
-      saltRounds: 10
-    }
+    // ... outras configs ...
   }
 };
+
+// Validar configurações
+function validateEnvironmentConfig(env) {
+  const envConfig = config[env];
+  if (!envConfig) {
+    throw new Error(`Invalid environment: ${env}`);
+  }
+
+  const validationErrors = validateConfig(envConfig);
+  if (validationErrors.length > 0) {
+    throw new Error(`Invalid configuration: ${validationErrors.join(', ')}`);
+  }
+  
+  return envConfig;
+}
+
+module.exports = validateEnvironmentConfig(process.env.NODE_ENV || 'development');

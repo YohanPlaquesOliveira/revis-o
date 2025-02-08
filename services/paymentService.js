@@ -1,59 +1,30 @@
-const mercadoPagoService = require('./mercadoPagoService');
-const queueService = require('./queueService');
-const Account = require('../models/account');
-const Device = require('../models/device');
-const logger = require('../middlewares/logger');
-
-class PaymentService {
-  async createPayment(paymentData, deviceId) {
+async updatePaymentStatus(paymentId, status) {
     try {
-      const device = await Device.findByPk(deviceId, {
-        include: [{
-          model: Account,
-          required: true
-        }]
-      });
+        const payment = await Payment.findOne({
+            where: { mp_payment_id: paymentId }
+        });
 
-      if (!device) {
-        throw new Error('Device not found');
-      }
+        if (!payment) {
+            throw new Error('Payment not found');
+        }
 
-      const payment = await mercadoPagoService.createPayment(
-        paymentData,
-        device.account.mp_access_token
-      );
+        await payment.update({
+            status,
+            updated_at: new Date().toISOString(),
+            updated_by: process.env.CURRENT_USER
+        });
 
-      // Enfileirar notificação para o dispositivo
-      await queueService.add('payment_notification', {
-        deviceId,
-        paymentId: payment.id,
-        status: payment.status,
-        timestamp: '2025-02-08 03:48:50'
-      });
+        // Notificar dispositivo sobre mudança de status
+        await queueService.add('payment_status_change', {
+            deviceId: payment.device_id,
+            paymentId,
+            status,
+            timestamp: new Date().toISOString()
+        });
 
-      return payment;
+        return payment;
     } catch (error) {
-      logger.error('Error creating payment:', error);
-      throw error;
+        logger.error('Error updating payment status:', error);
+        throw error;
     }
-  }
-
-  async getPaymentStatus(paymentId, accountId) {
-    try {
-      const account = await Account.findByPk(accountId);
-      if (!account) {
-        throw new Error('Account not found');
-      }
-
-      return await mercadoPagoService.getPayment(
-        paymentId,
-        account.mp_access_token
-      );
-    } catch (error) {
-      logger.error('Error getting payment status:', error);
-      throw error;
-    }
-  }
 }
-
-module.exports = new PaymentService();

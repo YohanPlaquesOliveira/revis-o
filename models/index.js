@@ -5,29 +5,51 @@ const Endpoints = require('./endpoints');
 const MerchantOrder = require('./merchantOrder');
 const Refund = require('./refund');
 const Store = require('./store');
+const logger = require('../middlewares/logger');
 
-// Definir relacionamentos
-Store.hasMany(Device, { foreignKey: 'store_id' });
-Device.belongsTo(Store, { foreignKey: 'store_id' });
+// Configurar relacionamentos com onDelete e onUpdate
+const relationships = {
+  initializeRelationships() {
+    try {
+      // Store -> Device (1:N)
+      Store.hasMany(Device, { 
+        foreignKey: 'store_id',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
+      });
+      Device.belongsTo(Store, { 
+        foreignKey: 'store_id'
+      });
 
-Store.hasOne(Account, { foreignKey: 'store_id' });
-Account.belongsTo(Store, { foreignKey: 'store_id' });
+      // Store -> Account (1:1)
+      Store.hasOne(Account, { 
+        foreignKey: 'store_id',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
+      });
+      Account.belongsTo(Store, { 
+        foreignKey: 'store_id'
+      });
 
-Store.hasOne(Endpoints, { foreignKey: 'store_id' });
-Endpoints.belongsTo(Store, { foreignKey: 'store_id' });
+      // Outros relacionamentos...
 
-Account.hasMany(MerchantOrder, { foreignKey: 'account_id' });
-MerchantOrder.belongsTo(Account, { foreignKey: 'account_id' });
-
-Account.hasMany(Refund, { foreignKey: 'account_id' });
-Refund.belongsTo(Account, { foreignKey: 'account_id' });
+      logger.info('Database relationships initialized successfully');
+    } catch (error) {
+      logger.error('Error initializing database relationships:', error);
+      throw error;
+    }
+  }
+};
 
 module.exports = {
   sequelize,
-  Account,
-  Device,
-  Endpoints,
-  MerchantOrder,
-  Refund,
-  Store
+  relationships,
+  models: {
+    Account,
+    Device,
+    Endpoints,
+    MerchantOrder,
+    Refund,
+    Store
+  }
 };

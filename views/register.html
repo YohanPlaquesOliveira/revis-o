@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Registro MP POS</title>
+</head>
+<body>
+    <form id="registerForm">
+        <input type="text" id="accessToken" placeholder="Access Token Mercado Pago">
+        <button type="submit">Registrar</button>
+    </form>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const accessToken = document.getElementById('accessToken').value;
+            
+            try {
+                const response = await fetch('/api/config/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ accessToken })
+                });
+                
+                const data = await response.json();
+                if (data.uniqueId) {
+                    alert(`Dispositivo registrado com sucesso! ID: ${data.uniqueId}`);
+                }
+            } catch (error) {
+                alert('Erro ao registrar dispositivo');
+            }
+        });
+    </script>
+</body>
+</html>

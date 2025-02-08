@@ -1,50 +1,34 @@
+const Queue = require('bull');
 const Redis = require('ioredis');
-const config = require('../config/redis');
+const config = require('../config/config');
 const logger = require('../middlewares/logger');
 
 class QueueService {
-  constructor() {
-    this.redis = new Redis(config.url);
-    this.queues = new Map();
-  }
-
-  async add(queue, data) {
-    try {
-      await this.redis.lpush(
-        `queue:${queue}`,
-        JSON.stringify({
-          ...data,
-          added_at: '2025-02-08 03:48:50',
-          added_by: 'YohanPlaques'
-        })
-      );
-      return true;
-    } catch (error) {
-      logger.error('Error adding to queue:', error);
-      throw error;
+    constructor() {
+        this.redis = new Redis(config.redis);
+        this.queues = {};
     }
-  }
 
-  async process(queue, callback) {
-    this.queues.set(queue, callback);
-    
-    while (true) {
-      try {
-        const data = await this.redis.brpop(`queue:${queue}`, 0);
-        if (data) {
-          const job = JSON.parse(data[1]);
-          await callback(job);
+    async add(queueName, data, opts = {}) {
+        if (!this.queues[queueName]) {
+            this.queues[queueName] = new Queue(queueName, {
+                redis: config.redis,
+                defaultJobOptions: {
+                    attempts: 3,
+                    backoff: {
+                        type: 'exponential',
+                        delay: 1000
+                    }
+                }
+            });
+
+            this.queues[queueName].on('error', (error) => {
+                logger.error(`Queue ${queueName} error:`, error);
+            });
         }
-      } catch (error) {
-        logger.error(`Error processing queue ${queue}:`, error);
-        await new Promise(resolve => setTimeout(resolve, 5000));
-      }
-    }
-  }
 
-  async getQueueSize(queue) {
-    return await this.redis.llen(`queue:${queue}`);
-  }
+        return this.queues[queueName].add(data, opts);
+    }
 }
 
 module.exports = new QueueService();

@@ -3,95 +3,92 @@
 <head>
     <title>IntegraPix - Configuração</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <!-- Adicionar mais estilos e melhorar UX -->
     <style>
-        body { 
-            font-family: Arial; 
-            margin: 20px;
-            background: #f5f5f5;
-        }
-        .container { 
-            max-width: 600px; 
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        input { 
-            width: 100%; 
-            margin: 10px 0; 
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-            font-size: 16px;
-        }
-        button { 
-            width: 100%; 
-            padding: 12px; 
-            background: #4CAF50; 
-            color: white; 
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 20px;
-        }
-        button:hover {
-            background: #45a049;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .info {
-            font-size: 14px;
-            color: #666;
-            text-align: center;
-            margin-top: 20px;
-            border-top: 1px solid #eee;
-            padding-top: 20px;
-        }
-        .instructions {
-            background: #f8f9fa;
+        /* ... estilos anteriores ... */
+        .alert {
             padding: 15px;
+            margin: 15px 0;
             border-radius: 4px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            line-height: 1.5;
+            display: none;
         }
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        /* Adicionar mais estilos necessários */
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>IntegraPix</h1>
-            <p>Configuração do Mercado Pago</p>
-        </div>
-        <div class="instructions">
-            <p><strong>Instruções:</strong></p>
-            <ol>
-                <li>Crie sua aplicação no Mercado Pago Developers</li>
-                <li>Insira o Access Token da sua aplicação abaixo</li>
-                <li>Após a configuração, use o POS para gerar um pagamento</li>
-                <li>Configure seu ESP32 com os dados fornecidos</li>
-            </ol>
+        <!-- ... conteúdo anterior ... -->
+        <div id="alertSuccess" class="alert alert-success"></div>
+        <div id="alertError" class="alert alert-error"></div>
+        <div id="loading" class="loading">
+            Processando...
         </div>
         <form id="tokenForm">
-            <input type="text" id="accessToken" name="accessToken" 
-                   placeholder="Access Token do Mercado Pago" required>
-            <button type="submit">Configurar</button>
+            <input type="text" 
+                   id="accessToken" 
+                   name="accessToken" 
+                   placeholder="Access Token do Mercado Pago"
+                   pattern="^APP_USR-[0-9]+-[0-9]+-[a-zA-Z0-9]+$"
+                   required>
+            <button type="submit" id="submitButton">Configurar</button>
         </form>
-        <div class="info">
-            <p>Created by: YohanPlaques</p>
-            <p>Created at: 2025-02-08 04:54:26</p>
-        </div>
+        <!-- ... resto do conteúdo ... -->
     </div>
 
     <script>
-        document.getElementById('tokenForm').addEventListener('submit', async (e) => {
+        const form = document.getElementById('tokenForm');
+        const submitButton = document.getElementById('submitButton');
+        const loadingDiv = document.getElementById('loading');
+        const successAlert = document.getElementById('alertSuccess');
+        const errorAlert = document.getElementById('alertError');
+
+        function showLoading() {
+            loadingDiv.style.display = 'block';
+            submitButton.disabled = true;
+        }
+
+        function hideLoading() {
+            loadingDiv.style.display = 'none';
+            submitButton.disabled = false;
+        }
+
+        function showAlert(type, message) {
+            const alert = type === 'success' ? successAlert : errorAlert;
+            alert.textContent = message;
+            alert.style.display = 'block';
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const accessToken = document.getElementById('accessToken').value;
+            const accessToken = document.getElementById('accessToken').value.trim();
+            
+            // Validação client-side
+            const tokenRegex = /^APP_USR-[0-9]+-[0-9]+-[a-zA-Z0-9]+$/;
+            if (!tokenRegex.test(accessToken)) {
+                showAlert('error', 'Token inválido. Verifique o formato.');
+                return;
+            }
+
+            showLoading();
             
             try {
                 const response = await fetch('/api/config/token', {
@@ -105,13 +102,16 @@
                 const data = await response.json();
                 
                 if (response.ok) {
-                    alert(`Configuração realizada com sucesso!\nSeu ID único é: ${data.uniqueId}\nGuarde este ID para configurar o ESP32.`);
+                    showAlert('success', 'Configuração salva com sucesso!');
+                    form.reset();
                 } else {
-                    alert(`Erro: ${data.message}`);
+                    showAlert('error', data.error || 'Erro ao salvar configuração');
                 }
             } catch (error) {
-                alert('Erro ao configurar. Tente novamente.');
-                console.error('Erro:', error);
+                showAlert('error', 'Erro de conexão. Tente novamente.');
+                console.error('Error:', error);
+            } finally {
+                hideLoading();
             }
         });
     </script>
