@@ -1,0 +1,38 @@
+services:
+  app:
+    container_name: mp-pos
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - API_BASE_URL=https://marcado-pago-production-b74c.up.railway.app
+      - DB_HOST=junction.proxy.rlwy.net
+      - DB_USER=postgres
+      - DB_PASSWORD=lfcgRwRGrawJcYsYSNrZFeNpYLCmQLjw
+      - DB_NAME=railway
+      - DB_PORT=26604
+      - REDIS_URL=redis://default:fNNrmvMSKCvlKIMncpwkkMWZSjWfxwCl@junction.proxy.rlwy.net:49006
+      - MQTT_BROKER=a1420d2d43b14afaab4c24fd1f2c8129.s1.eu.hivemq.cloud
+      - MQTT_PORT=8883
+      - MQTT_WS_PORT=8884
+      - TZ=UTC
+      - CREATED_BY=YohanPlaques
+      - CREATED_AT=2025-02-08 04:28:52
+    volumes:
+      - ./logs:/usr/src/app/logs
+    networks:
+      - mp-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  mp-network:
+    driver: bridge

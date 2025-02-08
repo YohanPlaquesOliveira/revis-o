@@ -1,0 +1,100 @@
+2025-02-04 16:11:00 error: uncaughtException: Cannot find module 'express-validator'
+Require stack:
+- C:\Users\rphst\servidor-esp32\controllers\deviceController.js
+- C:\Users\rphst\servidor-esp32\routes\registerRoutes.js
+- C:\Users\rphst\servidor-esp32\server.js
+Error: Cannot find module 'express-validator'
+Require stack:
+- C:\Users\rphst\servidor-esp32\controllers\deviceController.js
+- C:\Users\rphst\servidor-esp32\routes\registerRoutes.js
+- C:\Users\rphst\servidor-esp32\server.js
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1244:15)
+    at Function._load (node:internal/modules/cjs/loader:1070:27)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:217:24)
+    at Module.require (node:internal/modules/cjs/loader:1335:12)
+    at require (node:internal/modules/helpers:136:16)
+    at Object.<anonymous> (C:\Users\rphst\servidor-esp32\controllers\deviceController.js:2:30)
+    at Module._compile (node:internal/modules/cjs/loader:1562:14)
+    at Object..js (node:internal/modules/cjs/loader:1699:10)
+    at Module.load (node:internal/modules/cjs/loader:1313:32)
+2025-02-04 16:11:25 error: uncaughtException: Cannot find module 'express-validator'
+Require stack:
+- C:\Users\rphst\servidor-esp32\controllers\deviceController.js
+- C:\Users\rphst\servidor-esp32\routes\registerRoutes.js
+- C:\Users\rphst\servidor-esp32\server.js
+Error: Cannot find module 'express-validator'
+Require stack:
+- C:\Users\rphst\servidor-esp32\controllers\deviceController.js
+- C:\Users\rphst\servidor-esp32\routes\registerRoutes.js
+- C:\Users\rphst\servidor-esp32\server.js
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1244:15)
+    at Function._load (node:internal/modules/cjs/loader:1070:27)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:217:24)
+    at Module.require (node:internal/modules/cjs/loader:1335:12)
+    at require (node:internal/modules/helpers:136:16)
+    at Object.<anonymous> (C:\Users\rphst\servidor-esp32\controllers\deviceController.js:2:30)
+    at Module._compile (node:internal/modules/cjs/loader:1562:14)
+    at Object..js (node:internal/modules/cjs/loader:1699:10)
+    at Module.load (node:internal/modules/cjs/loader:1313:32)
+2025-02-04 17:14:31 error: uncaughtException: Cannot find module 'express-validator'
+Require stack:
+- C:\Users\rphst\servidor-esp32\controllers\deviceController.js
+- C:\Users\rphst\servidor-esp32\routes\registerRoutes.js
+- C:\Users\rphst\servidor-esp32\server.js
+Error: Cannot find module 'express-validator'
+Require stack:
+- C:\Users\rphst\servidor-esp32\controllers\deviceController.js
+- C:\Users\rphst\servidor-esp32\routes\registerRoutes.js
+- C:\Users\rphst\servidor-esp32\server.js
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1244:15)
+    at Function._load (node:internal/modules/cjs/loader:1070:27)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:217:24)
+    at Module.require (node:internal/modules/cjs/loader:1335:12)
+    at require (node:internal/modules/helpers:136:16)
+    at Object.<anonymous> (C:\Users\rphst\servidor-esp32\controllers\deviceController.js:2:30)
+    at Module._compile (node:internal/modules/cjs/loader:1562:14)
+    at Object..js (node:internal/modules/cjs/loader:1699:10)
+    at Module.load (node:internal/modules/cjs/loader:1313:32)
+2025-02-04 17:34:47 error: uncaughtException: Cannot find module 'express-validator'
+Require stack:
+- C:\Users\rphst\servidor-esp32\controllers\deviceController.js
+- C:\Users\rphst\servidor-esp32\routes\registerRoutes.js
+- C:\Users\rphst\servidor-esp32\server.js
+Error: Cannot find module 'express-validator'
+Require stack:
+- C:\Users\rphst\servidor-esp32\controllers\deviceController.js
+- C:\Users\rphst\servidor-esp32\routes\registerRoutes.js
+- C:\Users\rphst\servidor-esp32\server.js
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1244:15)
+    at Function._load (node:internal/modules/cjs/loader:1070:27)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:217:24)
+    at Module.require (node:internal/modules/cjs/loader:1335:12)
+    at require (node:internal/modules/helpers:136:16)
+    at Object.<anonymous> (C:\Users\rphst\servidor-esp32\controllers\deviceController.js:2:30)
+    at Module._compile (node:internal/modules/cjs/loader:1562:14)
+    at Object..js (node:internal/modules/cjs/loader:1699:10)
+    at Module.load (node:internal/modules/cjs/loader:1313:32)
+2025-02-04 17:36:56 error: uncaughtException: Cannot find module 'express-validator'
+Require stack:
+- C:\Users\rphst\servidor-esp32\controllers\deviceController.js
+- C:\Users\rphst\servidor-esp32\routes\registerRoutes.js
+- C:\Users\rphst\servidor-esp32\server.js
+Error: Cannot find module 'express-validator'
+Require stack:
+- C:\Users\rphst\servidor-esp32\controllers\deviceController.js
+- C:\Users\rphst\servidor-esp32\routes\registerRoutes.js
+- C:\Users\rphst\servidor-esp32\server.js
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1244:15)
+    at Function._load (node:internal/modules/cjs/loader:1070:27)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:217:24)
+    at Module.require (node:internal/modules/cjs/loader:1335:12)
+    at require (node:internal/modules/helpers:136:16)
+    at Object.<anonymous> (C:\Users\rphst\servidor-esp32\controllers\deviceController.js:2:30)
+    at Module._compile (node:internal/modules/cjs/loader:1562:14)
+    at Object..js (node:internal/modules/cjs/loader:1699:10)
+    at Module.load (node:internal/modules/cjs/loader:1313:32)
